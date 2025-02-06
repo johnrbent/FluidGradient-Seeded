@@ -33,7 +33,7 @@ public class FluidGradientView: SystemView {
     init(blobs: [Color] = [],
          highlights: [Color] = [],
          speed: CGFloat = 1.0,
-         seed: Int = 0
+         seed: UInt64 = 0
         ) {
         self.speed = speed
         super.init(frame: .zero)
@@ -86,7 +86,7 @@ public class FluidGradientView: SystemView {
                     existing.set(color: color)
                 }
             } else {
-                layer.addSublayer(BlobLayer(color: color))
+                layer.addSublayer(BlobLayer(color: color, rng: rng))
             }
         }
     }
@@ -102,7 +102,7 @@ public class FluidGradientView: SystemView {
             if let layer = layer as? BlobLayer {
                 let rd = GKRandomDistribution(randomSource: rng, lowestValue: 80, highestValue: 120)
                 let randomValue = rd.nextUniform()
-                let publishInterval = randomValue / (speed * 10)
+                let publishInterval = TimeInterval(randomValue / Float(speed * 10))
                 Timer.publish(every: publishInterval,
                               on: .main,
                               in: .common)
