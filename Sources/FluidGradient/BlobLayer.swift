@@ -117,6 +117,7 @@ public class BlobLayer: CAGradientLayer {
     
     // Required by the framework
     public override init(layer: Any) {
+        rng = GKMersenneTwisterRandomSource()
         super.init(layer: layer)
     }
 }
