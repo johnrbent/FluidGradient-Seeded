@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+import GameKit
 
 /// A CALayer that draws a single blob on the screen
 public class BlobLayer: CAGradientLayer {
-    init(color: Color) {
+    private let rng: GKMersenneTwisterRandomSource
+
+    init(color: Color, rng: GKMersenneTwisterRandomSource) {
+        self.rng = rng
         super.init()
         
         self.type = .radial
@@ -31,16 +35,22 @@ public class BlobLayer: CAGradientLayer {
     
     /// Generate a random point on the canvas
     func newPosition() -> CGPoint {
-        return CGPoint(x: CGFloat.random(in: 0.0...1.0),
-                       y: CGFloat.random(in: 0.0...1.0)).capped()
+        let distribution = GKRandomDistribution(randomSource: rng, lowestValue: 0, highestValue: 1)
+        return CGPoint(
+            x: CGFloat(distribution.nextUniform()),
+            y: CGFloat(distribution.nextUniform())
+            )
+            .capped()
     }
     
     /// Generate a random radius for the blob
     func newRadius() -> CGPoint {
-        let size = CGFloat.random(in: 0.15...0.75)
+        let sizeDistribution = GKRandomDistribution(randomSource: rng, lowestValue: 15, highestValue: 75)
+        let size = CGFloat(sizeDistribution.nextUniform() / 100)
         let viewRatio = frame.width/frame.height
         let safeRatio = max(viewRatio.isNaN ? 1 : viewRatio, 1)
-        let ratio = safeRatio*CGFloat.random(in: 0.25...1.75)
+        let ratioDistribution = GKRandomDistribution(randomSource: rng, lowestValue: 25, highestValue: 175)
+        let ratio = safeRatio*CGFloat(ratioDistribution.nextUniform() / 100)
         return CGPoint(x: size,
                        y: size*ratio)
     }
@@ -79,7 +89,8 @@ public class BlobLayer: CAGradientLayer {
         self.endPoint = position.displace(by: radius)
         
         // Opacity
-        let value = Float.random(in: 0.5...1)
+        let opacityDistribution = GKRandomDistribution(randomSource: rng, lowestValue: 5, highestValue: 10)
+        let value = opacityDistribution.nextUniform() / 10
         let opacity = animation.copy() as! CASpringAnimation
         opacity.fromValue = self.opacity
         opacity.toValue = value
