@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import GameKit
  
 #if os(OSX)
 import AppKit
@@ -24,17 +25,20 @@ public class FluidGradientView: SystemView {
     
     let baseLayer = ResizableLayer()
     let highlightLayer = ResizableLayer()
-    
+    let rng = GKMersenneTwisterRandomSource()
     var cancellables = Set<AnyCancellable>()
     
     weak var delegate: FluidGradientDelegate?
     
     init(blobs: [Color] = [],
          highlights: [Color] = [],
-         speed: CGFloat = 1.0) {
+         speed: CGFloat = 1.0,
+         seed: Int = 0
+        ) {
         self.speed = speed
         super.init(frame: .zero)
-        
+        rng.seed = seed
+     
         if let compositingFilter = CIFilter(name: "CIOverlayBlendMode") {
             highlightLayer.compositingFilter = compositingFilter
         }
@@ -96,7 +100,10 @@ public class FluidGradientView: SystemView {
         let layers = (baseLayer.sublayers ?? []) + (highlightLayer.sublayers ?? [])
         for layer in layers {
             if let layer = layer as? BlobLayer {
-                Timer.publish(every: .random(in: 0.8/speed...1.2/speed),
+                let rd = GKRandomDistribution(randomSource: rng, lowestValue: 80, highestValue: 120)
+                let randomValue = rd.nextUniform()
+                let publishInterval = randomValue / (speed * 10)
+                Timer.publish(every: publishInterval,
                               on: .main,
                               in: .common)
                     .autoconnect()
